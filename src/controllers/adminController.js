@@ -47,7 +47,7 @@ async function updateAdmin(req, res) {
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
     }
-};
+}
 
 async function updatePhoto(req, res) {
     try {
@@ -78,8 +78,38 @@ async function updatePhoto(req, res) {
     }
 }
 
+async function deletePhoto(req, res) {
+    try {
+        const userId = req.user.id;
+        const admin = await AdminModel.findById(userId).select('-password');
+
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found', data: null });
+        }
+
+        if (admin.image) {
+            const imagePath = path.join(__dirname, '..', 'uploads/admin', admin.image);
+            await fs.unlink(imagePath);
+
+            admin.image = null;
+            await admin.save();
+        }
+
+        res.status(200).json({
+            message: 'Profile photo deleted successfully',
+            data: admin
+        });
+    } catch (error) {
+        res.status(400).json({
+            message: 'Error deleting profile photo',
+            data: null
+        });
+    }
+}
+
 module.exports = {
     getAdmin,
     updateAdmin,
     updatePhoto,
+    deletePhoto,
 }
