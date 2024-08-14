@@ -59,11 +59,11 @@ async function updatePhoto(req, res) {
         }
 
         if (admin.image) {
-            const imagePath = path.join(__dirname, '..', 'uploads/admin', admin.image);
+            const imagePath = path.join(__dirname, '..', admin.image);
             await fs.unlink(imagePath);
         }
 
-        admin.image = req.file.filename;
+        admin.image = req.file.fullPath;
         await admin.save();
 
         res.status(200).json({
@@ -88,7 +88,7 @@ async function deletePhoto(req, res) {
         }
 
         if (admin.image) {
-            const imagePath = path.join(__dirname, '..', 'uploads/admin', admin.image);
+            const imagePath = path.join(__dirname, '..', admin.image);
             await fs.unlink(imagePath);
 
             admin.image = null;

@@ -1,13 +1,14 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const categories = require('../common/enums/category.enum');
 
-const getDestination = (uploadType) => {
+const getDestination = (uploadType, category) => {
     switch (uploadType) {
         case 'admin':
             return 'src/uploads/admin/';
         case 'portfolio':
-            return 'src/uploads/portfolio/';
+            return `src/uploads/portfolio/${category}`;
         default:
             return 'src/uploads/';
     }
@@ -16,7 +17,13 @@ const getDestination = (uploadType) => {
 const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
         const uploadType = req.body.type || 'default';
-        const destinationPath = getDestination(uploadType);
+        const { category } = req.params;
+
+        if (uploadType === 'portfolio' && !categories.includes(category)) {
+            return cb(new Error('Invalid category'));
+        }
+
+        const destinationPath = getDestination(uploadType, category);
 
         try {
             await fs.access(destinationPath);
@@ -27,7 +34,23 @@ const storage = multer.diskStorage({
         cb(null, destinationPath);
     },
     filename: (req, file, cb) => {
+        const uploadType = req.body.type || 'default';
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+
+        let filePath;
+
+        if (uploadType === 'portfolio') {
+            const category = req.params.category
+
+            filePath = path.join('uploads', uploadType, category, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        } else {
+            filePath = path.join('uploads', uploadType, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        }
+
+        file.fullPath = filePath;
+
+        // file.fullPath = path.join('uploads', uploadType, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));;
+
         cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
