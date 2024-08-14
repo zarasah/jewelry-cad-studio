@@ -4,15 +4,48 @@ const fs = require('fs').promises;
 const path = require('path');
 
 async function getPortfolioByCategory(req, res) {
+    const defaultLimit = parseInt(process.env.DEFAULT_PAGINATION_LIMIT, 10);
+
     try {
         const { category } = req.params;
-        const portfolio = await PortfolioModel.findOne({ category });
+        let { page = 1, limit = defaultLimit } = req.query;
 
-        if (!portfolio) {
-            return res.status(404).json({ message: 'Category not found', data: null });
+        if (!categories.includes(category)) {
+            return res.status(400).json({ message: 'Invalid category', data: null });
         }
 
-        res.status(200).json({ message: 'Images retrieved successfully', data: portfolio.images });
+        page = parseInt(page, 10);
+        limit = parseInt(limit, 10);
+
+        if (limit === -1) {
+            const images = await PortfolioModel.find({ category })
+
+            return res.status(200).json({
+                message: 'Images retrieved successfully',
+                data: images,
+            });
+        }
+
+        if (isNaN(page) || page <= 0 || isNaN(limit)) {
+            return res.status(400).json({ message: 'Invalid page or limit number', data: null });
+        }
+
+        const skip = (page - 1) * limit;
+
+        const images = await PortfolioModel.find({ category })
+            .skip(skip)
+            .limit(limit)
+            .exec();
+
+        const totalImages = await PortfolioModel.countDocuments({ category });
+
+        res.status(200).json({
+            message: 'Images retrieved successfully',
+            data: images,
+            total: totalImages,
+            page: page,
+            limit: limit
+        });
     } catch (error) {
         console.error(`Error fetching images: ${error.message}`);
         res.status(500).json({ message: 'An error occurred while fetching images', data: null });
@@ -27,17 +60,14 @@ async function addPhotoToPortfolio(req, res) {
             return res.status(400).json({ message: 'Invalid category', data: null });
         }
 
-        let portfolio = await PortfolioModel.findOne({ category });
+        const newImage = new PortfolioModel({
+            category,
+            filename: req.file.fullPath
+        })
 
-        if (!portfolio) {
-            portfolio = new PortfolioModel({ category, images: [] });
-        }
+        await newImage.save();
 
-        portfolio.images.push({ filename: req.file.fullPath });
-
-        await portfolio.save();
-
-        res.status(200).json({ message: 'Image added successfully', data: portfolio.images });
+        res.status(200).json({ message: 'Image added successfully', data: newImage });
     } catch (error) {
         console.error(`Error adding image: ${error.message}`);
         res.status(500).json({ message: 'An error occurred while adding the image', data: null });
@@ -53,27 +83,19 @@ async function removePhotoFromPortfolio(req, res) {
             return res.status(400).json({ message: 'Invalid category', data: null });
         }
 
-        const portfolio = await PortfolioModel.findOne({ category });
+        const portfolio = await PortfolioModel.findById(imageId);
 
-        if (!portfolio) {
-            return res.status(404).json({ message: 'Category not found', data: null });
+        if (!portfolio || portfolio.category !== category) {
+            return res.status(404).json({ message: 'Image not found or does not belong to the specified category', data: null });
         }
 
-        const image = portfolio.images.id(imageId);
-
-        if (!image) {
-            return res.status(404).json({ message: 'Image not found', data: null });
-        }
-
-        const imagePath = path.join(__dirname, '..', image.filename);
+        const imagePath = path.join(__dirname, '..', portfolio.filename);
 
         await fs.unlink(imagePath);
 
-        portfolio.images.pull(imageId);
+        await PortfolioModel.findByIdAndDelete(imageId);
 
-        await portfolio.save();
-
-        res.status(200).json({ message: 'Image removed successfully', data: portfolio.images });
+        res.status(200).json({ message: 'Image removed successfully', data: imageId});
     } catch (error) {
         console.error(`Error removing image: ${error.message}`);
         res.status(500).json({ message: 'An error occurred while removing the image', data: null });

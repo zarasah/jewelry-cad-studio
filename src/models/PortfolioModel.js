@@ -8,16 +8,10 @@ const PortfolioSchema = new Schema({
         required: true,
         enum: categories
     },
-    images: [{
-        filename: {
-            type: String,
-            required: true,
-        },
-        uploadDate: {
-            type: Date,
-            default: Date.now,
-        }
-    }]
+    filename: {
+        type: String,
+        required: true
+    }
 }, {
     timestamps: true
 });
