@@ -2,7 +2,7 @@ const express = require('express');
 const adminRoutes = express.Router();
 const { adminCtrl } = require('../controllers');
 const authenticateUser = require('../middlewares/authenticateUser');
-const upload = require('../config/multer');
+const {upload} = require('../config/multer');
 
 adminRoutes.get('/', authenticateUser, adminCtrl.getAdmin);
 adminRoutes.patch('/update', authenticateUser, adminCtrl.updateAdmin);

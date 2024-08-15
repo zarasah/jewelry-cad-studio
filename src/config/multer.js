@@ -13,6 +13,8 @@ const getDestination = (uploadType, category) => {
             return `src/uploads/aboutus/`;
         case 'slider':
             return `src/uploads/slider`;
+        case 'blog':
+            return `src/uploads/blog`;
         default:
             return 'src/uploads/';
     }
@@ -61,4 +63,17 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-module.exports = upload;
+const uploadImages = multer({
+    storage: storage
+}).fields([
+    { name: 'bannerImage', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 },
+    { name: 'image4', maxCount: 1 },
+    { name: 'image5', maxCount: 1 }
+]);
+
+module.exports = {
+    upload,
+    uploadImages
+};
