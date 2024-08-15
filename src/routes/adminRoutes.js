@@ -6,7 +6,7 @@ const upload = require('../config/multer');
 
 adminRoutes.get('/', authenticateUser, adminCtrl.getAdmin);
 adminRoutes.patch('/update', authenticateUser, adminCtrl.updateAdmin);
-adminRoutes.patch('/photo', authenticateUser, authenticateUser, upload.single('image'), adminCtrl.updatePhoto);
+adminRoutes.patch('/photo', authenticateUser, upload.single('image'), adminCtrl.updatePhoto);
 adminRoutes.delete('/photo', authenticateUser, adminCtrl.deletePhoto);
 
 module.exports = adminRoutes;
