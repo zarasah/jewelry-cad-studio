@@ -9,6 +9,10 @@ const getDestination = (uploadType, category) => {
             return 'src/uploads/admin/';
         case 'portfolio':
             return `src/uploads/portfolio/${category}`;
+        case 'aboutus':
+            return `src/uploads/aboutus/`;
+        case 'slider':
+            return `src/uploads/slider`;
         default:
             return 'src/uploads/';
     }
