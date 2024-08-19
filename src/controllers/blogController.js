@@ -4,7 +4,7 @@ const path = require('path');
 
 async function getAllBlogs(req, res) {
     try {
-        const blogs = await BlogModel.find().exec();
+        const blogs = await BlogModel.find().sort({ createdAt: -1 });
 
         res.status(200).json({
             message: 'Blogs retrieved successfully',

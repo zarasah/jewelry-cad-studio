@@ -4,7 +4,7 @@ const path = require('path');
 
 async function getAllTeamMembers(req, res) {
     try {
-        const members = await TeamMemberModel.find();
+        const members = await TeamMemberModel.find().sort({ createdAt: -1 });
         res.status(200).json({
             message: 'Team members retrieved successfully',
             data: members
