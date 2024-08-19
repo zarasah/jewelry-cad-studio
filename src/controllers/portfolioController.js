@@ -33,6 +33,7 @@ async function getPortfolioByCategory(req, res) {
         const skip = (page - 1) * limit;
 
         const images = await PortfolioModel.find({ category })
+            .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
             .exec();
