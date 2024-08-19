@@ -4,48 +4,19 @@ const fs = require('fs').promises;
 const path = require('path');
 
 async function getPortfolioByCategory(req, res) {
-    const defaultLimit = parseInt(process.env.DEFAULT_PAGINATION_LIMIT, 10);
-
     try {
         const { category } = req.params;
-        let { page = 1, limit = defaultLimit } = req.query;
 
         if (!categories.includes(category)) {
             return res.status(400).json({ message: 'Invalid category', data: null });
         }
 
-        page = parseInt(page, 10);
-        limit = parseInt(limit, 10);
-
-        if (limit === -1) {
-            const images = await PortfolioModel.find({ category })
-
-            return res.status(200).json({
-                message: 'Images retrieved successfully',
-                data: images,
-            });
-        }
-
-        if (isNaN(page) || page <= 0 || isNaN(limit)) {
-            return res.status(400).json({ message: 'Invalid page or limit number', data: null });
-        }
-
-        const skip = (page - 1) * limit;
-
         const images = await PortfolioModel.find({ category })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .exec();
+            .sort({ createdAt: -1 });
 
-        const totalImages = await PortfolioModel.countDocuments({ category });
-
-        res.status(200).json({
+        return res.status(200).json({
             message: 'Images retrieved successfully',
             data: images,
-            total: totalImages,
-            page: page,
-            limit: limit
         });
     } catch (error) {
         console.error(`Error fetching images: ${error.message}`);
